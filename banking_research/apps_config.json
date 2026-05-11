@@ -1,0 +1,42 @@
+{
+  "Greece": {
+    "country": "gr",
+    "lang": "el",
+    "apps": {
+      "Alpha_Bank": "gr.alpha.alpha_mobile_banking",
+      "Eurobank": "gr.Eurobank.mobilebanking",
+      "NBG": "gr.nbg.mobile",
+      "Piraeus": "gr.piraeusbank.winbank"
+    }
+  },
+  "Bulgaria": {
+    "country": "bg",
+    "lang": "bg",
+    "apps": {
+      "DSK_Bank": "bg.dskbank.DSKmobile",
+      "Postbank": "bg.postbank.mobile.android.release",
+      "UBB_Bank": "bg.ubb.ubbmobile",
+      "UniCredit_Bulbank": "hr.asseco.android.jimba.mUCI.bg"
+    }
+  },
+  "Albania": {
+    "country": "al",
+    "lang": "sq",
+    "apps": {
+      "Raiffeisen_Bank": "eu.newfrontier.iBanking.mobile.RZBAL",
+      "OTP_Bank": "com.halcom.mobile.hybrid.puppaltr",
+      "Credins_Bank": "cy.com.netinfo.netteller.credinsbank",
+      "Intesa_Sanpaolo": "com.isba.isba.mobile.banking"
+    }
+  },
+  "North_Macedonia": {
+    "country": "mk",
+    "lang": "mk",
+    "apps": {
+      "Stopanska_Banka": "mk.com.stb",
+      "NLB_Bank": "mk.nlbtb.mklik",
+      "Komercijalna_Banka": "mk.com.kb.m_bank",
+      "Halkbank": "com.quipugmbh.mba.halkbankmacedonia"
+    }
+  }
+}
