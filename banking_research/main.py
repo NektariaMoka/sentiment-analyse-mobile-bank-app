@@ -13,48 +13,47 @@ Path("data/cleaned").mkdir(parents=True, exist_ok=True)
 def main():
     print("Starting scraping...")
 
-    all_dfs = scrape_all_apps(
-        apps=BANKING_APPS,
-        country_codes=COUNTRY_CODES,
-        count=10000,
-    )
+    # Scrape for each country and save cleaned files separately
+    for country in BANKING_APPS.keys():
+        print(f"\nProcessing {country}...")
+        
+        # We still want to scrape them, but we'll clean and save them one by one
+        for bank_name, app_id in BANKING_APPS[country].items():
+            print(f"\nScraping {bank_name} ({app_id})...")
+            
+            # Use a temporary dict for one bank to use existing scrape_all_apps logic 
+            # or just call scrape_app_reviews directly. 
+            # scrape_all_apps handles language and folders, so let's stick to it for consistency
+            single_bank_dict = {country: {bank_name: app_id}}
+            
+            all_dfs = scrape_all_apps(
+                apps=single_bank_dict,
+                country_codes=COUNTRY_CODES,
+                count=10000,
+            )
 
-    if not all_dfs:
-        print("No data scraped. Check app IDs or scraper settings.")
-        return
+            if not all_dfs:
+                print(f"No data scraped for {bank_name}. Skipping...")
+                continue
 
-    merged_df = pd.concat(all_dfs, ignore_index=True)
+            bank_df = all_dfs[0]
 
-    print("Merged columns:")
-    print(merged_df.columns.tolist())
+            print(f"Cleaning data for {bank_name}...")
+            clean_df = clean_reviews(bank_df)
 
-    print("Cleaning data...")
-    clean_df = clean_reviews(merged_df)
+            if clean_df.empty:
+                print(f"Clean dataset for {bank_name} is empty.")
+                continue
 
-    print("Clean columns:")
-    print(clean_df.columns.tolist())
+            # Output file name: country_bank_clean.csv
+            output_file = f"data/cleaned/{country.lower()}_{bank_name.lower()}_clean.csv"
+            clean_df.to_csv(
+                output_file,
+                index=False,
+                encoding="utf-8-sig",
+            )
 
-    if clean_df.empty:
-        print("Clean dataset is empty.")
-        return
-
-    clean_df.to_csv(
-        "data/cleaned/greece_banking_reviews_clean.csv",
-        index=False,
-        encoding="utf-8-sig",
-    )
-
-    print("Saved: data/cleaned/greece_banking_reviews_clean.csv")
-
-    print("\nReviews per bank:")
-    if "bank" in clean_df.columns:
-        print(clean_df["bank"].value_counts())
-
-    print("\nRatings:")
-    if "rating" in clean_df.columns:
-        print(clean_df["rating"].value_counts())
-    else:
-        print("No rating column found.")
+            print(f"Saved: {output_file}")
 
 
 if __name__ == "__main__":

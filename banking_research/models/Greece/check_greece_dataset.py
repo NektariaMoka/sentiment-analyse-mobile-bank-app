@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 
-DATA_PATH = "data/cleaned/greece_banking_reviews_clean.csv"
+DATA_PATH = "../../data/cleaned/greece_banking_reviews_clean.csv"
 
 df = pd.read_csv(DATA_PATH)
 
@@ -46,7 +46,7 @@ five_star = df[df["rating"] == 5][["bank", "rating", "review"]].sample(
 )
 print(five_star.to_string(index=False))
 
-Path("outputs").mkdir(exist_ok=True)
+Path("../../outputs").mkdir(exist_ok=True)
 
 summary = df.groupby("bank").agg(
     reviews=("review", "count"),

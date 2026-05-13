@@ -152,3 +152,4 @@ cython_debug/
 
 # Custom project ignores
 banking_research/docs/
+*.csv
