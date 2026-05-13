@@ -39,7 +39,7 @@ def scrape_app_store_reviews(app_id, country="al"):
     all_reviews = []
     
     # iTunes RSS feed for customer reviews
-    # Page can be 1 to 10
+    # Page can be 1 to 10. Actually, it can go up to 10 pages maximum for RSS.
     for page in range(1, 11):
         url = f"https://itunes.apple.com/{country}/rss/customerreviews/page={page}/id={app_id}/sortby=mostrecent/json"
         try:
@@ -94,7 +94,11 @@ def scrape_all_apps(apps, country_codes, count=3000):
         if country == "Greece":
             langs = ["el", "en"]
         elif country == "Albania":
-            langs = ["sq", "en", "it", "de", "fr", "es", "tr", "el"]
+            # Expanding languages to cover more potential reviews
+            langs = [
+                "sq", "en", "it", "de", "fr", "es", "tr", "el", 
+                "ru", "ar", "zh", "pt", "nl", "pl", "hu", "ro"
+            ]
         else:
             langs = ["en"]
 
@@ -116,12 +120,23 @@ def scrape_all_apps(apps, country_codes, count=3000):
             # 2. Scrape App Store
             if "apple_id" in config:
                 print(f"Scraping App Store for {bank_name}: {config['apple_id']}")
+                # Scrape primary country
                 apple_df = scrape_app_store_reviews(
                     app_id=config['apple_id'],
                     country=country_codes[country]
                 )
                 if not apple_df.empty:
                     bank_dfs.append(apple_df)
+                
+                # Also try 'us' store for Albania as it's common
+                if country == "Albania":
+                    print(f"  Scraping App Store (US) for {bank_name}...")
+                    apple_us_df = scrape_app_store_reviews(
+                        app_id=config['apple_id'],
+                        country="us"
+                    )
+                    if not apple_us_df.empty:
+                        bank_dfs.append(apple_us_df)
 
             if not bank_dfs:
                 continue
