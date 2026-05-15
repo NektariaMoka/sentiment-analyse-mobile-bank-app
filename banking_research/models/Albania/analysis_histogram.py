@@ -4,10 +4,15 @@ import seaborn as sns
 from pathlib import Path
 
 def generate_rating_histogram():
+    base_dir = Path(__file__).parent
     # Use the combined Greece dataset as it has enough data for 1000 reviews
     # or combined Albania if available.
-    file_path = Path("../data/cleaned/greece_banking_reviews_clean.csv")
+    file_path = base_dir / "data/cleaned/albania_raiffeisen_on_clean.csv"
     
+    if not file_path.exists():
+        # Try relative to script location if current dir is different
+        file_path = Path(__file__).parent / "data/cleaned/albania_raiffeisen_on_clean.csv"
+
     if not file_path.exists():
         print(f"Error: {file_path} not found.")
         return
@@ -15,14 +20,18 @@ def generate_rating_histogram():
     print(f"Loading data from {file_path}...")
     df = pd.read_csv(file_path)
     
-    # In the previous session, we renamed 'rating' to 'score' for final output
-    # or kept it as 'rating' in clean_reviews. Let's check columns.
+    # Check for the correct column name in the cleaned Albania dataset
     print("Columns in dataframe:", df.columns.tolist())
     
-    rating_col = 'score' if 'score' in df.columns else 'rating'
-    
-    if rating_col not in df.columns:
-        print(f"Error: Column '{rating_col}' not found.")
+    # Priority for column names based on the scraper's output format
+    if 'Star Rating' in df.columns:
+        rating_col = 'Star Rating'
+    elif 'score' in df.columns:
+        rating_col = 'score'
+    elif 'rating' in df.columns:
+        rating_col = 'rating'
+    else:
+        print(f"Error: Rating column not found in {df.columns.tolist()}")
         return
 
     # Take first 1000 reviews as requested
@@ -50,7 +59,7 @@ def generate_rating_histogram():
                     xytext = (0, 9), 
                     textcoords = 'offset points')
 
-    output_plot = "rating_distribution_histogram.png"
+    output_plot = base_dir / "rating_distribution_histogram.png"
     plt.savefig(output_plot)
     print(f"\nHistogram saved to {output_plot}")
     # plt.show() # Commented out to avoid interactive block in non-interactive environment

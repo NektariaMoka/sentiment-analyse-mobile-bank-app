@@ -81,21 +81,15 @@ def run_albania():
         formatted_df["Developer Reply Text"] = bank_df.get("replyContent", "")
         formatted_df["Review Link"] = ""
 
-        all_formatted_dfs.append(formatted_df)
-        print(f"Added {len(formatted_df)} reviews for {bank_name} to collection.")
-
-    if all_formatted_dfs:
-        final_df = pd.concat(all_formatted_dfs, ignore_index=True)
-        output_file = base_dir / "data/cleaned/albania_all_banks_clean.csv"
-        final_df.to_csv(
+        # Save individual bank file
+        output_file = base_dir / f"data/cleaned/albania_{bank_name.lower()}_clean.csv"
+        formatted_df.to_csv(
             output_file,
             index=False,
             encoding="utf-8-sig",
         )
-        print(f"\nSUCCESS! Saved consolidated file to: {output_file}")
-        print(f"Total reviews saved: {len(final_df)}")
-    else:
-        print("No data collected.")
+        print(f"SUCCESS! Saved individual file to: {output_file}")
+        print(f"Added {len(formatted_df)} reviews for {bank_name}.")
 
 if __name__ == "__main__":
     run_albania()
