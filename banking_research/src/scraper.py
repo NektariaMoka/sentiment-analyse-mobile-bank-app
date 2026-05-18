@@ -96,8 +96,7 @@ def scrape_all_apps(apps, country_codes, count=3000):
         elif country == "Albania":
             # Expanding languages to cover more potential reviews
             langs = [
-                "sq", "en", "it", "de", "fr", "es", "tr", "el", 
-                "ru", "ar", "zh", "pt", "nl", "pl", "hu", "ro"
+                "sq", "en", "it"
             ]
         else:
             langs = ["en"]
@@ -142,11 +141,6 @@ def scrape_all_apps(apps, country_codes, count=3000):
                 continue
 
             df = pd.concat(bank_dfs, ignore_index=True)
-            df["country"] = country
-            df["bank"] = bank_name
-            # Store primary ID
-            df["app_id"] = config.get("play_id") or config.get("apple_id")
-
             # Ensure the data/raw directory exists
             raw_dir = Path("data/raw")
             if not raw_dir.parent.exists() and Path("banking_research").exists():

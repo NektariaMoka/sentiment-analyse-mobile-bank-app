@@ -46,13 +46,6 @@ def run_albania():
         bank_df = bank_df.copy()
         bank_df["at"] = pd.to_datetime(bank_df["at"], errors="coerce", utc=True)
         
-        def to_millis(dt):
-            try:
-                if pd.isna(dt): return ""
-                return int(dt.timestamp() * 1000)
-            except:
-                return ""
-
         formatted_df = pd.DataFrame()
         formatted_df["Package Name"] = bank_df.apply(lambda x: config.get("play_id") if x["source"] == "google_play" else config.get("apple_id"), axis=1)
         formatted_df["App Version Code"] = ""
@@ -60,11 +53,8 @@ def run_albania():
         formatted_df["Reviewer Language"] = "en"
         formatted_df["Device"] = ""
         
-        formatted_df["Review Submit Date and Time"] = bank_df["at"].dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-        formatted_df["Review Submit Millis Since Epoch"] = bank_df["at"].apply(to_millis)
-        
-        formatted_df["Review Last Update Date and Time"] = formatted_df["Review Submit Date and Time"]
-        formatted_df["Review Last Update Millis Since Epoch"] = formatted_df["Review Submit Millis Since Epoch"]
+        formatted_df["Review Submit Date"] = bank_df["at"].dt.strftime('%Y-%m-%d')
+        formatted_df["Review Last Update Date"] = formatted_df["Review Submit Date"]
         
         formatted_df["Star Rating"] = bank_df["score"]
         formatted_df["Review Title"] = bank_df.get("review_title", "")
@@ -72,11 +62,9 @@ def run_albania():
         
         if "repliedAt" in bank_df.columns:
             bank_df["repliedAt"] = pd.to_datetime(bank_df["repliedAt"], errors="coerce")
-            formatted_df["Developer Reply Date and Time"] = bank_df["repliedAt"].dt.strftime('%Y-%m-%dT%H:%M:%SZ').fillna("")
-            formatted_df["Developer Reply Millis Since Epoch"] = bank_df["repliedAt"].apply(to_millis)
+            formatted_df["Developer Reply Date"] = bank_df["repliedAt"].dt.strftime('%Y-%m-%d').fillna("")
         else:
-            formatted_df["Developer Reply Date and Time"] = ""
-            formatted_df["Developer Reply Millis Since Epoch"] = ""
+            formatted_df["Developer Reply Date"] = ""
             
         formatted_df["Developer Reply Text"] = bank_df.get("replyContent", "")
         formatted_df["Review Link"] = ""

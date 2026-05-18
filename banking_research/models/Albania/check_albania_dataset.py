@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 
 # Instead of one single file, we now look for multiple bank files
-CLEANED_DIR = Path("../../data/cleaned")
+CLEANED_DIR = Path("./data/cleaned")
 
 albania_banks = [
     "bkt_smart", "credins_online", "raiffeisen_on", 
@@ -35,22 +35,22 @@ for bank in albania_banks:
     print(df.head())
 
     print("\n===== RATINGS DISTRIBUTION =====")
-    if "score" in df.columns:
-        print(df["score"].value_counts().sort_index())
+    if "Star Rating" in df.columns:
+        print(df["Star Rating"].value_counts().sort_index())
 
     print("\n===== MISSING VALUES =====")
     print(df.isnull().sum())
 
     print("\n===== DATE RANGE =====")
-    if "at" in df.columns:
-        df["at"] = pd.to_datetime(df["at"], errors="coerce")
-        print("Oldest review:", df["at"].min())
-        print("Newest review:", df["at"].max())
+    if "Review Submit Date" in df.columns:
+        df["Review Submit Date"] = pd.to_datetime(df["Review Submit Date"], errors="coerce")
+        print("Oldest review:", df["Review Submit Date"].min().date())
+        print("Newest review:", df["Review Submit Date"].max().date())
 
     print("\n===== SAMPLE 1-STAR REVIEWS =====")
-    if "score" in df.columns and "content" in df.columns:
-        one_star = df[df["score"] == 1][["score", "content"]].sample(
-            min(5, len(df[df["score"] == 1])),
+    if "Star Rating" in df.columns and "Review Text" in df.columns:
+        one_star = df[df["Star Rating"] == 1][["Star Rating", "Review Text"]].sample(
+            min(5, len(df[df["Star Rating"] == 1])),
             random_state=42
         )
         print(one_star.to_string(index=False))
