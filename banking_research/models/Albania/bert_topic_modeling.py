@@ -104,7 +104,10 @@ def process_file(file_path):
     )
 
     # Save output
-    output_csv = output_dir / file_path.name.replace("_clean.csv", "_bertopic.csv")
+    # Extract the bank name from the filename (e.g., from 'albania_bkt_smart_clean.csv' extract 'bkt_smart')
+    bank_name = file_path.name.replace("albania_", "").replace("_clean.csv", "")
+    output_csv = output_dir / f"bert_topic_{bank_name}.csv"
+
     df_model.to_csv(output_csv, index=False, encoding="utf-8-sig")
     print(f"Saved: {output_csv}")
 

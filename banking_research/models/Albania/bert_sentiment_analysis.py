@@ -1,10 +1,7 @@
 import re
 import pandas as pd
-import numpy as np
 from pathlib import Path
 from transformers import pipeline
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 
 # =========================
 # PATHS
@@ -66,24 +63,6 @@ def get_sentiment(text):
         return "Neutral", 0.0, 0.0, 1.0, 0.0
 
 # =========================
-# BERT EMBEDDING MODEL
-# =========================
-
-embedding_model = SentenceTransformer(
-    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-)
-
-def create_embeddings(texts):
-    embeddings = embedding_model.encode(
-        texts,
-        batch_size=32,
-        show_progress_bar=True,
-        convert_to_numpy=True,
-        normalize_embeddings=True
-    )
-    return embeddings
-
-# =========================
 # MAIN PROCESS
 # =========================
 
@@ -114,41 +93,19 @@ def process_file(file_path):
         ]
     ] = pd.DataFrame(sentiment_results.tolist(), index=df.index)
 
-    # -------------------------
-    # BERT EMBEDDINGS
-    # -------------------------
-
-    docs = df["clean_text"].tolist()
-
-    embeddings = create_embeddings(docs)
-
-    # We no longer save embedding dimensions as columns in the CSV to keep it simple for research.
-    # The embeddings are still saved separately in the .npy file.
-
     final_df = df.copy()
 
     # -------------------------
     # SAVE OUTPUT
     # -------------------------
 
-    output_csv = output_dir / file_path.name.replace(
-        "_clean.csv",
-        "_bert_only.csv"
-    )
+    # Extract the bank name from the filename (e.g., from 'albania_bkt_smart_clean.csv' extract 'bkt_smart')
+    bank_name = file_path.name.replace("albania_", "").replace("_clean.csv", "")
+    output_csv = output_dir / f"bert_{bank_name}.csv"
 
     final_df.to_csv(output_csv, index=False, encoding="utf-8-sig")
 
     print(f"Saved CSV: {output_csv}")
-
-    # Optional: save embeddings separately
-    output_npy = output_dir / file_path.name.replace(
-        "_clean.csv",
-        "_embeddings.npy"
-    )
-
-    np.save(output_npy, embeddings)
-
-    print(f"Saved embeddings: {output_npy}")
 
 # =========================
 # RUN ALL ALBANIA FILES
