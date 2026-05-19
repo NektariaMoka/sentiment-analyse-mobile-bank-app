@@ -16,11 +16,25 @@ output_dir.mkdir(parents=True, exist_ok=True)
 # TEXT CLEANING
 # =========================
 
-def normalize_albanian(text):
+ALBANIAN_STOPWORDS = {
+    "a", "apo", "asnje", "ata", "ato", "ca", "deri", "dhe", "do", "e", "i", "jam",
+    "jane", "jemi", "jeni", "ju", "juaj", "kam", "kaq", "ke", "kemi", "kete",
+    "me", "mu", "ne", "nese", "nje", "nuk", "pa", "pas", "pasi", "per", "prej",
+    "qe", "sa", "se", "sec", "si", "saj", "te", "ti", "tek", "tij", "tone",
+    "tuaj", "ty", "tyre", "une", "vec"
+}
+
+def normalize_albanian(text, remove_stopwords=True):
     text = str(text).lower()
     text = text.replace("ë", "e").replace("ç", "c")
     text = re.sub(r"http\S+", " ", text)
     text = re.sub(r"[^a-zA-Z\s]", " ", text)
+
+    if remove_stopwords:
+        words = text.split()
+        words = [w for w in words if w not in ALBANIAN_STOPWORDS]
+        text = " ".join(words)
+
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
@@ -34,19 +48,19 @@ sentiment_pipe = pipeline(
     top_k=None
 )
 
-def get_sentiment(text):
-    if not isinstance(text, str) or not text.strip():
-        return "Neutral", 0.0, 1.0, 0.0
-
-    try:
-        results = sentiment_pipe(text[:512])[0]
-
+def parse_pipe_results(pipe_results):
+    """
+    Parses the raw results from the sentiment pipeline into categorical labels and scores.
+    """
+    batch_data = []
+    for results in pipe_results:
+        # nlptown labels: 1 star, 2 stars, 3 stars, 4 stars, 5 stars
         probs = {r["label"]: r["score"] for r in results}
-
+        
         neg = probs.get("1 star", 0) + probs.get("2 stars", 0)
         neu = probs.get("3 stars", 0)
         pos = probs.get("4 stars", 0) + probs.get("5 stars", 0)
-
+        
         if pos > neg and pos > neu:
             label = "Positive"
             score = pos
@@ -56,11 +70,15 @@ def get_sentiment(text):
         else:
             label = "Neutral"
             score = neu
-
-        return label, round(score, 4), round(pos, 4), round(neu, 4), round(neg, 4)
-
-    except Exception:
-        return "Neutral", 0.0, 0.0, 1.0, 0.0
+            
+        batch_data.append([
+            label, 
+            round(score, 4), 
+            round(pos, 4), 
+            round(neu, 4), 
+            round(neg, 4)
+        ])
+    return batch_data
 
 # =========================
 # MAIN PROCESS
@@ -73,15 +91,22 @@ def process_file(file_path):
 
     text_col = "Review Text" if "Review Text" in df.columns else "review"
 
-    df["clean_text"] = df[text_col].apply(normalize_albanian)
+    df["clean_text"] = df[text_col].apply(lambda x: normalize_albanian(x, remove_stopwords=True))
 
     df = df[df["clean_text"].str.strip() != ""].copy()
 
     # -------------------------
-    # BERT SENTIMENT
+    # BERT SENTIMENT (BATCH PROCESSING)
     # -------------------------
 
-    sentiment_results = df[text_col].apply(get_sentiment)
+    # Convert column to list for batching
+    texts = df[text_col].astype(str).tolist()
+
+    # batch_size=16 is a safe balance for memory and performance
+    # truncation=True ensures we don't exceed BERT's 512 token limit
+    raw_results = sentiment_pipe(texts, batch_size=16, truncation=True)
+    
+    sentiment_data = parse_pipe_results(raw_results)
 
     df[
         [
@@ -91,7 +116,7 @@ def process_file(file_path):
             "Neutral_Prob",
             "Negative_Prob"
         ]
-    ] = pd.DataFrame(sentiment_results.tolist(), index=df.index)
+    ] = pd.DataFrame(sentiment_data, index=df.index)
 
     final_df = df.copy()
 
